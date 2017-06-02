@@ -1,0 +1,104 @@
+-------------------------------------
+---CREATE PROXY TOOL----
+----------------------------------
+
+-----ui----
+
+btn_create = iup.button{ title = "Create Proxy", size="130x20", FLAT="YES"}
+-- copying color settings from SELECTED tool
+btn_delete = iup.button{ title = "Delete Proxy", size="130x20", FLAT="YES"}
+
+-- show the dialog.
+dlg = iup.dialog{iup.hbox {
+                    iup.vbox{ btn_create, btn_delete}};
+                    title = "Create Proxy Tool",
+                    MARGIN= "15x15", TOPMOST = "YES",  BGCOLOR="60 60 60", FGCOLOR = "200 200 200", RESIZE = "NO"}
+
+-----------
+
+
+function btn_create:action()
+
+toollist = composition:GetToolList(true)
+
+for i, tool in toollist do
+    tool_a  = tool:GetAttrs()
+
+    if tool_a.TOOLS_RegID == "Loader" then
+        x = 1
+        clipTable = tool_a.TOOLST_Clip_Name
+        altclipTable = tool_a.TOOLST_AltClip_Name
+        startTime = tool_a.TOOLNT_Clip_Start
+
+        ----current Filename---
+        currentfile = tool.Clip[startTime[x]]
+        stringfile = tostring (currentfile)
+
+        for x, y in string.gmatch(stringfile, "(%a+):(.+)\\([%a%p]+)") do
+            z = 1
+            extension = "L:\\Projects\\"
+            folder = string.sub(y, 2)
+
+            sourceExt = "T:\\"
+            ---destination folder  ---
+            newFolder = extension .. folder
+            sourceFolder = sourceExt .. folder
+            newProxy = extension .. string.sub(currentfile, 4)
+
+            os.execute( "mkdir " .. newFolder)
+            os.execute( "copy ".. sourceFolder .. " " .. newFolder )
+
+        ----set Proxy----
+
+            tool.ProxyFilename[startTime[z]] = newProxy
+
+        end
+
+    end
+end
+end
+
+function btn_delete:action()
+
+toollist = composition:GetToolList(true)
+
+for i, tool in toollist do
+    tool_a  = tool:GetAttrs()
+
+
+    if tool_a.TOOLS_RegID == "Loader" then
+        x = 1
+        clipTable = tool_a.TOOLST_Clip_Name
+        altclipTable = tool_a.TOOLST_AltClip_Name
+        startTime = tool_a.TOOLNT_Clip_Start
+
+
+
+        ----current Filename---
+        currentfile = tool.ProxyFilename[startTime[x]]
+        stringfile = tostring (currentfile)
+
+
+        for x, y in string.gmatch(stringfile, "(%a+):(.+)\\([%a%p]+)") do
+            z = 1
+            extension = "L:\\"
+            folder = string.sub(y, 2)
+
+            sourceExt = "T:\\"
+            ---destination folder  ---
+            newFolder = extension .. folder
+            sourceFolder = sourceExt .. folder
+            newProxy = extension .. string.sub(currentfile, 4)
+            deleteExt = "\\*.*"
+            newFolderdel = newFolder .. deleteExt
+            print (newFolderdel)
+            os.execute( "del /F /Q " .. newFolderdel)
+            tool.ProxyFilename[startTime[z]] = ""
+
+        end
+    end
+end
+
+end
+dlg:showxy(iup.CENTER, iup.CENTER)
+iup.MainLoop()
